@@ -1,0 +1,14 @@
+data to track per game:
+
+home team id
+    team name
+    owner(s) name(s)
+away team id
+    team name
+    owner(s) name(s)
+home team score
+away team score
+home team record?
+away team record?
+scoring period (week)
+year
