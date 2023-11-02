@@ -2,6 +2,8 @@
 
 import json
 
+TwentyFiveWinsTest = 0
+
 class Game():
     """ object to host all info about a specific fantasy game """
 
@@ -14,33 +16,83 @@ class Game():
         self.year = year
 
     def team_and_owner_names(self):
-        self.home_team_name = "Stroud Boys"
-        self.home_owner_name = "Pat Blesco"
-        self.away_team_name = "Tuanon"
-        self.away_owner_name = "Sophie Bono"
+        names = generateTeams(self.home_id, self.away_id, self.year)
+        self.home_team_name = names[0]
+        self.home_owner_name = names[1]
+        self.away_team_name = names[2]
+        self.away_owner_name = names[3]
 
     def display_game(self):
         print("{0}\t\t{1}".format(self.home_team_name, self.away_team_name))
         print("{0}\t\t{1}".format(self.home_owner_name, self.away_owner_name))
         print("{0}\t\t{1}".format(self.home_id, self.away_id))
         print("{0}\t\t{1}".format(self.home_score, self.away_score))
-        print("Week {0} of {1}".format(week, year))
+        print("Week {0} of {1}".format(self.week, self.year))
 
-f = open("mBoxscore.txt")
-data = json.load(f)
-Schedule = {}
-Schedule[2018] = data["2018"]["schedule"]
+def generateGames(start_year, end_year):
+    for year in range(start_year, end_year+1, 1):
+        teams = boxscoreData[str(year)]["status"]["teamsJoined"]
+        weeks = boxscoreData[str(year)]["scoringPeriodId"]
+        games = round(teams / 2) * weeks
+        for game in range(0, games+1, 1):
+            try:
+                home_id = boxscoreData[str(year)]["schedule"][game]["home"]["teamId"]
+                away_id = boxscoreData[str(year)]["schedule"][game]["away"]["teamId"]
+                home_score = boxscoreData[str(year)]["schedule"][game]["home"]["totalPoints"]
+                away_score = boxscoreData[str(year)]["schedule"][game]["away"]["totalPoints"]
+                week = boxscoreData[str(year)]["schedule"][game]["matchupPeriodId"]
+                if TwentyFiveWinsTest == 1:
+                    if home_id == 4:
+                        if home_score > away_score:
+                            print("win")
+                            recordedGames.append(Game(home_id, away_id, home_score, away_score, week, year))
+                    elif away_id == 4:
+                        if home_score < away_score:
+                            print("win")
+                            recordedGames.append(Game(home_id, away_id, home_score, away_score, week, year))
+                else:
+                    recordedGames.append(Game(home_id, away_id, home_score, away_score, week, year))
 
-games = []
+            except IndexError:
+                continue
+            except KeyError: 
+                """ bye weeks or teams out of playoffs dont have an away team """
+                continue
 
-for year in range(2018, 2019, 1):
-    for game in range(0, 5, 1):
-        home_id = Schedule[year][game]["home"]["teamId"]
-        away_id = Schedule[year][game]["away"]["teamId"]
-        home_score = Schedule[year][game]["home"]["totalPoints"]
-        away_score = Schedule[year][game]["away"]["totalPoints"]
-        week = Schedule[year][game]["matchupPeriodId"]
-        games.append(Game(home_id, away_id, home_score, away_score, week, year))
+def generateTeams(home_id, away_id, year):
+    """ grab team name from id """
+    for team in boxscoreData[str(year)]["teams"]:
+        if team["id"] == home_id:
+            home_team_name = team["name"]
+        if team["id"] == away_id:
+            away_team_name = team["name"]
 
-games[0].team_and_owner_names()
-games[0].display_game()
+    """ grab owner tag from id """
+    for team in teamData[str(year)]["teams"]:
+        if team["id"] == home_id:
+            home_owner_tag = team["primaryOwner"]
+        if team["id"] == away_id:
+            away_owner_tag = team["primaryOwner"]
+
+    """ grab owner name from tag """
+    for team in teamData[str(year)]["members"]:
+        if team["id"] == home_owner_tag:
+            home_owner_name = "{0} {1}".format(team["firstName"], team["lastName"])
+        if team["id"] == away_owner_tag:
+            away_owner_name = "{0} {1}".format(team["firstName"], team["lastName"])
+    return home_team_name, home_owner_name, away_team_name, away_owner_name
+
+f = open("mBoxscore.json")
+boxscoreData = json.load(f)
+f.close()
+
+f = open("mTeam.json")
+teamData = json.load(f)
+f.close()
+recordedGames = []
+
+generateGames(2018, 2022)
+
+for game in recordedGames:
+    game.team_and_owner_names()
+    game.display_game()
