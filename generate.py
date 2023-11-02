@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import json
+import numpy as np
+import xlsxwriter
 
 TwentyFiveWinsTest = 0
 
@@ -10,8 +12,8 @@ class Game():
     def __init__(self, home_id, away_id, home_score, away_score, week, year):
         self.home_id = home_id
         self.away_id = away_id
-        self.home_score = home_score
-        self.away_score = away_score
+        self.home_score = int(home_score)
+        self.away_score = int(away_score)
         self.week = week
         self.year = year
 
@@ -28,6 +30,12 @@ class Game():
         print("{0}\t\t{1}".format(self.home_id, self.away_id))
         print("{0}\t\t{1}".format(self.home_score, self.away_score))
         print("Week {0} of {1}".format(self.week, self.year))
+
+    def scores(self):
+        return self.home_score, self.away_score
+
+    def date(self):
+        return self.week, self.year
 
 def generateGames(start_year, end_year):
     for year in range(start_year, end_year+1, 1):
@@ -89,10 +97,25 @@ f.close()
 f = open("mTeam.json")
 teamData = json.load(f)
 f.close()
+
 recordedGames = []
+scorigami = np.zeros((300,300))
 
 generateGames(2018, 2022)
 
 for game in recordedGames:
     game.team_and_owner_names()
     game.display_game()
+    x = max(game.scores())
+    y = min(game.scores())
+    scorigami[x][y] += 1
+
+workbook = xlsxwriter.Workbook("scorigami.xlsx")
+worksheet = workbook.add_worksheet()
+
+row = 0
+
+for col, data in enumerate(scorigami):
+    worksheet.write_column(row, col, data)
+
+workbook.close()
