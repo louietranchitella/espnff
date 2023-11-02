@@ -105,10 +105,15 @@ generateGames(2018, 2022)
 
 for game in recordedGames:
     game.team_and_owner_names()
-    game.display_game()
+#   game.display_game()
     x = max(game.scores())
     y = min(game.scores())
     scorigami[x][y] += 1
+
+for j in range(300):
+    for i in range(300):
+        if i < j:
+            scorigami[i][j] = -1
 
 workbook = xlsxwriter.Workbook("scorigami.xlsx")
 worksheet = workbook.add_worksheet()
