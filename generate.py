@@ -4,8 +4,6 @@ import json
 import numpy as np
 import xlsxwriter
 
-TwentyFiveWinsTest = 0
-
 class Game():
     """ object to host all info about a specific fantasy game """
 
@@ -49,16 +47,8 @@ def generateGames(start_year, end_year):
                 home_score = boxscoreData[str(year)]["schedule"][game]["home"]["totalPoints"]
                 away_score = boxscoreData[str(year)]["schedule"][game]["away"]["totalPoints"]
                 week = boxscoreData[str(year)]["schedule"][game]["matchupPeriodId"]
-                if TwentyFiveWinsTest == 1:
-                    if home_id == 4:
-                        if home_score > away_score:
-                            print("win")
-                            recordedGames.append(Game(home_id, away_id, home_score, away_score, week, year))
-                    elif away_id == 4:
-                        if home_score < away_score:
-                            print("win")
-                            recordedGames.append(Game(home_id, away_id, home_score, away_score, week, year))
-                else:
+                """ test for weeks that haven't played yet in current year """
+                if (home_score + away_score != 0):
                     recordedGames.append(Game(home_id, away_id, home_score, away_score, week, year))
 
             except IndexError:
@@ -101,11 +91,11 @@ f.close()
 recordedGames = []
 scorigami = np.zeros((300,300))
 
-generateGames(2018, 2022)
+generateGames(2018, 2023)
 
 for game in recordedGames:
     game.team_and_owner_names()
-#   game.display_game()
+    game.display_game()
     x = max(game.scores())
     y = min(game.scores())
     scorigami[x][y] += 1
